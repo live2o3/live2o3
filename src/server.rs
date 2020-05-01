@@ -10,7 +10,6 @@ use rml_rtmp::time::RtmpTimestamp;
 use slab::Slab;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
-use std::sync::Arc;
 
 enum ClientAction {
     Waiting,
@@ -46,13 +45,9 @@ impl Client {
 struct MediaChannel {
     publishing_client_id: Option<usize>,
     watching_client_ids: HashSet<usize>,
-    metadata: Option<Arc<StreamMetadata>>,
+    metadata: Option<StreamMetadata>,
     video_sequence_header: Option<Bytes>,
     audio_sequence_header: Option<Bytes>,
-}
-
-fn arc_to_rc(arc: &Arc<StreamMetadata>) -> Rc<StreamMetadata> {
-    Rc::new(arc.as_ref().to_owned())
 }
 
 #[derive(Debug)]
@@ -409,7 +404,7 @@ impl Server {
                         Some(ref metadata) => {
                             let packet = match client
                                 .session
-                                .send_metadata(stream_id, arc_to_rc(metadata))
+                                .send_metadata(stream_id, Rc::new(metadata.clone()))
                             {
                                 Ok(packet) => packet,
                                 Err(error) => {
@@ -516,7 +511,6 @@ impl Server {
             None => return,
         };
 
-        let metadata = Arc::new(metadata);
         channel.metadata = Some(metadata.clone());
 
         // Send the metadata to all current watchers
@@ -531,8 +525,7 @@ impl Server {
                 None => continue,
             };
 
-            let m = arc_to_rc(&metadata);
-            match client.session.send_metadata(active_stream_id, m) {
+            match client.session.send_metadata(active_stream_id, Rc::new(metadata.clone())) {
                 Ok(packet) => server_results.push(ServerResult::OutboundPacket {
                     target_connection_id: client.connection_id,
                     packet,
