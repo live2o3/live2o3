@@ -1,3 +1,5 @@
+// 这个文件大部分内容来自 https://github.com/KallDrexx/rust-media-libs/blob/master/examples/threaded_rtmp_server/src/server.rs
+
 use bytes::Bytes;
 use rml_rtmp::chunk_io::Packet;
 use rml_rtmp::sessions::StreamMetadata;
