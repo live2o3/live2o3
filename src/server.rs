@@ -50,7 +50,7 @@ struct MediaChannel {
 }
 
 fn arc_to_rc(arc: &Arc<StreamMetadata>) -> Rc<StreamMetadata> {
-    Rc::new(arc.as_ref().to_owned().to_owned())
+    Rc::new(arc.as_ref().to_owned())
 }
 
 #[derive(Debug)]
@@ -387,7 +387,7 @@ impl Server {
 
             let channel = self
                 .channels
-                .entry(stream_key.clone())
+                .entry(stream_key)
                 .or_insert(MediaChannel {
                     publishing_client_id: None,
                     watching_client_ids: HashSet::new(),
@@ -490,8 +490,6 @@ impl Server {
                 server_results.push(ServerResult::DisconnectConnection {
                     connection_id: requested_connection_id,
                 });
-
-                return;
             }
 
             Ok(results) => {
@@ -669,15 +667,15 @@ impl Server {
 
 fn is_video_sequence_header(data: Bytes) -> bool {
     // This is assuming h264.
-    return data.len() >= 2 && data[0] == 0x17 && data[1] == 0x00;
+    data.len() >= 2 && data[0] == 0x17 && data[1] == 0x00
 }
 
 fn is_audio_sequence_header(data: Bytes) -> bool {
     // This is assuming aac
-    return data.len() >= 2 && data[0] == 0xaf && data[1] == 0x00;
+    data.len() >= 2 && data[0] == 0xaf && data[1] == 0x00
 }
 
 fn is_video_keyframe(data: Bytes) -> bool {
     // assumings h264
-    return data.len() >= 2 && data[0] == 0x17 && data[1] != 0x00; // 0x00 is the sequence header, don't count that for now
+    data.len() >= 2 && data[0] == 0x17 && data[1] != 0x00 // 0x00 is the sequence header, don't count that for now
 }

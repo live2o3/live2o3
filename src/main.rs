@@ -180,7 +180,7 @@ async fn connection_read_loop(
 ) {
     let _close_guard = CloseGuard(id, buffer_sender.clone());
 
-    if remaining_bytes.len() > 0 {
+    if !remaining_bytes.is_empty() {
         match buffer_sender.send(ServerMessage::Data(id, remaining_bytes)) {
             Ok(_) => {}
             Err(_) => {
