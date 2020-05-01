@@ -382,16 +382,13 @@ impl Server {
                 stream_id,
             };
 
-            let channel = self
-                .channels
-                .entry(stream_key)
-                .or_insert(MediaChannel {
-                    publishing_client_id: None,
-                    watching_client_ids: HashSet::new(),
-                    metadata: None,
-                    video_sequence_header: None,
-                    audio_sequence_header: None,
-                });
+            let channel = self.channels.entry(stream_key).or_insert(MediaChannel {
+                publishing_client_id: None,
+                watching_client_ids: HashSet::new(),
+                metadata: None,
+                video_sequence_header: None,
+                audio_sequence_header: None,
+            });
 
             channel.watching_client_ids.insert(*client_id);
             accept_result = match client.session.accept_request(request_id) {
@@ -525,7 +522,10 @@ impl Server {
                 None => continue,
             };
 
-            match client.session.send_metadata(active_stream_id, Rc::new(metadata.clone())) {
+            match client
+                .session
+                .send_metadata(active_stream_id, Rc::new(metadata.clone()))
+            {
                 Ok(packet) => server_results.push(ServerResult::OutboundPacket {
                     target_connection_id: client.connection_id,
                     packet,
